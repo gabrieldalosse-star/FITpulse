@@ -70,8 +70,16 @@
       </section>
 
       <section class="view" id="training">
-        <div class="section-title"><div><p class="eyebrow">PERIODIZAÇÃO · 24 SEMANAS</p><h1>Treino com direção</h1><p>Uma estrutura de hipertrofia editável. A progressão precisa respeitar técnica, recuperação e resposta individual.</p></div><button class="primary" id="completeWorkout">Concluir treino de hoje</button></div>
-        <div class="training-top"><article class="panel session-card"><p class="eyebrow">SESSÃO DE HOJE</p><h3>Superiores A <span class="badge">RIR 2–3</span></h3><div class="exercise-list"><div><b>Supino reto</b><span>4 × 6–10</span></div><div><b>Remada apoiada</b><span>4 × 8–12</span></div><div><b>Desenvolvimento</b><span>3 × 8–12</span></div><div><b>Puxada alta</b><span>3 × 8–12</span></div></div><p class="evidence">Registre a sessão concluída; a plataforma não substitui avaliação profissional.</p></article><article class="panel chart-panel"><div class="panel-head"><div><p class="eyebrow">VOLUME PLANEJADO</p><h3>Progressão por bloco</h3></div></div><canvas id="volumeChart" aria-label="Gráfico de volume ao longo da periodização"></canvas></article></div>
+        <div class="section-title"><div><p class="eyebrow">TREINO & PERIODIZAÇÃO</p><h1>Monte suas sessões.</h1><p>Crie fichas, ajuste séries, repetições, carga e descanso. Consulte uma demonstração quando precisar revisar a execução.</p></div><div class="training-actions"><button class="secondary" id="newWorkoutButton">+ Montar treino</button><button class="primary" id="completeWorkout">Concluir treino de hoje</button></div></div>
+        <div class="training-top"><article class="panel session-card"><p class="eyebrow">TREINO ATIVO</p><div id="todayWorkoutDetails"></div><p class="evidence">Marcar a sessão atualiza o registro diário de consistência.</p></article><article class="panel chart-panel"><div class="panel-head"><div><p class="eyebrow">VOLUME PLANEJADO</p><h3>Progressão por bloco</h3></div></div><canvas id="volumeChart" aria-label="Gráfico de volume ao longo da periodização"></canvas></article></div>
+        <article class="panel workout-library-panel"><div class="panel-head"><div><p class="eyebrow">SEUS TREINOS</p><h3>Fichas salvas</h3></div><button class="text-button" id="newWorkoutSecondary">+ Criar ficha</button></div><div id="savedWorkoutList"></div></article>
+        <article class="panel training-builder hidden" id="trainingBuilder"><div class="panel-head"><div><p class="eyebrow" id="builderEyebrow">NOVA FICHA</p><h3 id="builderTitle">Monte seu treino</h3></div><button class="dialog-close builder-close" id="closeTrainingBuilder" type="button" aria-label="Fechar editor">×</button></div>
+          <div class="form-grid two-cols"><label>Nome do treino<input id="workoutName" maxlength="60" placeholder="Ex.: Superiores A"></label><label>Dia ou divisão<input id="workoutSchedule" maxlength="40" placeholder="Ex.: Segunda · Peito e costas"></label></div>
+          <label class="workout-notes">Observação da ficha<input id="workoutNotes" maxlength="180" placeholder="Opcional: foco técnico, bloco ou orientação"></label>
+          <div class="exercise-library"><div class="exercise-library-head"><div><p class="eyebrow">BIBLIOTECA DE EXERCÍCIOS</p><h4>Adicione movimentos</h4></div><div class="exercise-filters"><label>Buscar<input id="exerciseSearch" placeholder="Ex.: supino, agachamento"></label><label>Grupo<select id="exerciseMuscleFilter"><option value="">Todos</option><option>Peito</option><option>Costas</option><option>Ombros</option><option>Bíceps</option><option>Tríceps</option><option>Pernas</option><option>Core</option></select></label></div></div><div class="exercise-catalog" id="exerciseCatalog"></div></div>
+          <div class="draft-heading"><div><p class="eyebrow">SUA SESSÃO</p><h4>Exercícios selecionados</h4></div><span class="badge" id="draftCount">0 exercícios</span></div><div id="workoutDraftList" class="workout-draft-list"></div>
+          <div class="builder-footer"><button class="secondary" id="cancelWorkoutEdit" type="button">Cancelar</button><button class="primary" id="saveWorkoutButton" type="button">Salvar ficha</button></div>
+        </article>
         <article class="panel"><div class="panel-head"><div><p class="eyebrow">MAPA DE 6 MESES</p><h3>Periodização de hipertrofia</h3></div><span class="badge">24 semanas</span></div><div class="periodization" id="periodizationTable"></div></article>
       </section>
 
@@ -94,3 +102,4 @@
   <script src="./app.js"></script>
 </body>
 </html>
+

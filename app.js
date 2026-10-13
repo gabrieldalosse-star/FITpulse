@@ -3,11 +3,19 @@
     ['Arroz branco cozido',128,2.5,28.1,.2],['Arroz integral cozido',124,2.6,25.8,1],['Peito de frango grelhado',159,32,0,2.5],['Patinho grelhado',219,35.9,0,7.3],['Tilápia grelhada',154,31.4,0,2.2],['Salmão grelhado',229,25.4,0,14.2],['Ovo inteiro cozido',146,13.3,.6,9.5],['Clara de ovo cozida',52,11,.7,.2],['Feijão carioca cozido',76,4.8,13.6,.5],['Lentilha cozida',93,6.3,16.3,.5],['Tofu',76,8.1,1.9,4.8],['Iogurte natural',61,3.5,4.7,3.3],['Cottage',98,11,3.4,4.3],['Whey protein (pó)',400,80,8,6],['Aveia em flocos',394,13.9,66.6,8.5],['Pão integral',253,9.4,44.1,3.7],['Batata-doce cozida',76,.6,18.4,.1],['Macarrão cozido',102,3.2,19.9,.5],['Banana prata',98,1.3,26,.1],['Abacate',96,1.2,6,8.4],['Brócolis cozido',25,2.1,4.4,.5],['Azeite de oliva',884,0,0,100]
   ].map(([name,kcal,p,c,f]) => ({name,kcal,p,c,f}));
   const meals = ['Café da manhã','Almoço','Lanche','Jantar','Pós-treino'];
+  const exerciseCatalog = [
+    ['Supino reto','Peito','Barra'],['Supino inclinado com halteres','Peito','Halteres'],['Crucifixo na polia','Peito','Polia'],['Flexão de braço','Peito','Peso corporal'],
+    ['Remada curvada','Costas','Barra'],['Remada baixa','Costas','Polia'],['Puxada frontal','Costas','Polia'],['Levantamento terra romeno','Pernas','Barra'],
+    ['Desenvolvimento com halteres','Ombros','Halteres'],['Elevação lateral','Ombros','Halteres'],['Rosca direta','Bíceps','Barra'],['Rosca martelo','Bíceps','Halteres'],
+    ['Tríceps na corda','Tríceps','Polia'],['Agachamento livre','Pernas','Barra'],['Leg press','Pernas','Máquina'],['Cadeira extensora','Pernas','Máquina'],
+    ['Mesa flexora','Pernas','Máquina'],['Panturrilha em pé','Pernas','Máquina'],['Prancha','Core','Peso corporal'],['Abdominal crunch','Core','Peso corporal']
+  ].map(([name,muscle,equipment],index)=>({id:`ex-${index+1}`,name,muscle,equipment}));
+
   const base = {
     food: [], goals: { kcal: 2600, protein: 150, carbs: 330, fat: 75 }, profile: { weight: 75, proteinFactor: 1.8 },
     recovery: { bedtime: '23:00', wake: '07:00', sleepGoal: 8, awake: 15, quality: 8, stress: 4, water: 2.5, history: [7.1, 7.5, 6.8, 7.8, 7.3, 7.6] },
     focus: { screen: 3.2, deep: 90, reading: 20, steps: 7000 },
-    training: { completed: false }, supplements: { 'Creatina': false, 'Whey protein': false, 'Ômega-3': false, 'Cafeína': false },
+    training: { completed: false, workouts: [], activeWorkoutId: null }, supplements: { 'Creatina': false, 'Whey protein': false, 'Ômega-3': false, 'Cafeína': false },
     tasks: [{ text: 'Planejar refeições de amanhã', done: false }, { text: 'Separar a roupa de treino', done: true }]
   };
   const $ = s => document.querySelector(s);
@@ -15,9 +23,11 @@
   const number = n => new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0}).format(n || 0);
   const decimal = n => new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(n || 0);
   const esc = text => String(text).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const hydrate = source => ({...base, ...source, goals:{...base.goals,...source?.goals}, profile:{...base.profile,...source?.profile}, recovery:{...base.recovery,...source?.recovery}, focus:{...base.focus,...source?.focus}, training:{...base.training,...source?.training}, supplements:{...base.supplements,...source?.supplements}, food:Array.isArray(source?.food)?source.food:base.food, tasks:Array.isArray(source?.tasks)?source.tasks:base.tasks});
+  const hydrate = source => ({...base, ...source, goals:{...base.goals,...source?.goals}, profile:{...base.profile,...source?.profile}, recovery:{...base.recovery,...source?.recovery}, focus:{...base.focus,...source?.focus}, training:{...base.training,...source?.training,workouts:Array.isArray(source?.training?.workouts)?source.training.workouts:base.training.workouts}, supplements:{...base.supplements,...source?.supplements}, food:Array.isArray(source?.food)?source.food:base.food, tasks:Array.isArray(source?.tasks)?source.tasks:base.tasks});
   let state = hydrate(JSON.parse(localStorage.getItem('fitpulse-v2') || 'null'));
   let activeUser = null;
+  let draftExercises = [];
+  let editingWorkoutId = null;
   let toastTimer;
 
   function persist(message) {
@@ -68,7 +78,50 @@
     $('#foodInput').innerHTML=foods.map((food,i)=>`<option value="${i}">${food.name}</option>`).join('');
     renderFoodPreview(); drawMacro(t);
   }
-  function renderTraining() { $('#completeWorkout').textContent=state.training.completed?'✓ Treino concluído':'Concluir treino de hoje'; $('#completeWorkout').classList.toggle('secondary',state.training.completed); $('#completeWorkout').classList.toggle('primary',!state.training.completed); const blocks=[['Sem. 1–6','Acumulação I','Volume progressivo · RIR 2–3'],['Sem. 7–12','Acumulação II','Maior estímulo · RIR 1–2'],['Sem. 13–18','Intensificação','Carga em foco · RIR 1–2'],['Sem. 19–24','Consolidação','Volume ajustado · deload estratégico']]; $('#periodizationTable').innerHTML=blocks.map(b=>`<div class="block"><span class="week">${b[0]}</span><h4>${b[1]}</h4><p>${b[2]}</p></div>`).join(''); drawVolume(); }
+  const makeId = prefix => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
+  function openWorkoutBuilder(workout=null) {
+    editingWorkoutId=workout?.id||null;
+    draftExercises=workout?workout.exercises.map(item=>({...item})): [];
+    $('#workoutName').value=workout?.name||'';
+    $('#workoutSchedule').value=workout?.schedule||'';
+    $('#workoutNotes').value=workout?.notes||'';
+    $('#builderEyebrow').textContent=workout?'EDITAR FICHA':'NOVA FICHA';
+    $('#builderTitle').textContent=workout?'Atualize seu treino':'Monte seu treino';
+    $('#saveWorkoutButton').textContent=workout?'Salvar alterações':'Salvar ficha';
+    $('#trainingBuilder').classList.remove('hidden');
+    renderExerciseCatalog();
+    renderWorkoutDraft();
+    $('#trainingBuilder').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function renderExerciseCatalog() {
+    const root=$('#exerciseCatalog'); if(!root)return;
+    const query=$('#exerciseSearch').value.trim().toLocaleLowerCase('pt-BR');
+    const muscle=$('#exerciseMuscleFilter').value;
+    const items=exerciseCatalog.filter(x=>(!muscle||x.muscle===muscle)&&(!query||`${x.name} ${x.muscle} ${x.equipment}`.toLocaleLowerCase('pt-BR').includes(query)));
+    root.innerHTML=items.length?items.map((x,i)=>`<article class="library-exercise"><div><b>${esc(x.name)}</b><small>${esc(x.muscle)} · ${esc(x.equipment)}</small></div><button type="button" class="text-button" data-add-exercise="${esc(x.id)}">Adicionar</button></article>`).join(''):'<p class="empty-state">Nenhum exercício encontrado.</p>';
+  }
+  function renderWorkoutDraft() {
+    const root=$('#workoutDraftList'); if(!root)return;
+    $('#draftCount').textContent=`${draftExercises.length} ${draftExercises.length===1?'exercício':'exercícios'}`;
+    root.innerHTML=draftExercises.length?draftExercises.map((x,i)=>`<article class="draft-exercise"><div class="draft-exercise-head"><div><b>${esc(x.name)}</b><small>${esc(x.muscle)} · ${esc(x.equipment)}</small></div><div class="draft-actions"><button type="button" class="text-button" data-video-query="${encodeURIComponent(x.name)}">Ver execução</button><button type="button" class="delete-food" data-remove-exercise="${esc(x.id)}" aria-label="Remover ${esc(x.name)}">×</button></div></div><div class="draft-fields"><label>Séries<input type="number" min="1" max="20" data-draft-id="${esc(x.id)}" data-draft-field="sets" value="${Number(x.sets)||3}"></label><label>Repetições<input maxlength="20" data-draft-id="${esc(x.id)}" data-draft-field="reps" value="${esc(x.reps||'8–12')}"></label><label>Carga (kg)<input type="number" min="0" max="1000" step="0.5" data-draft-id="${esc(x.id)}" data-draft-field="load" value="${esc(x.load||'')}" placeholder="Opcional"></label><label>Descanso (s)<input type="number" min="0" max="900" step="15" data-draft-id="${esc(x.id)}" data-draft-field="rest" value="${Number(x.rest)||90}"></label></div></article>`).join(''):'<p class="empty-state">Adicione exercícios da biblioteca para começar a ficha.</p>';
+  }
+  function renderSavedWorkouts() {
+    const root=$('#savedWorkoutList'); if(!root)return;
+    root.innerHTML=state.training.workouts.length?'<div class="saved-workout-grid">'+state.training.workouts.map(workout=>`<article class="saved-workout"><div class="saved-workout-head"><div><h4>${esc(workout.name)}</h4><small>${esc(workout.schedule||'Sem dia definido')}</small></div><span class="badge">${workout.exercises.length} exercícios</span></div><p class="saved-workout-note">${esc(workout.notes||'Ficha pessoal')}</p><div class="saved-exercise-list">${workout.exercises.map(x=>`<div><span>${esc(x.name)}</span><small>${Number(x.sets)||3} × ${esc(x.reps||'8–12')} · ${Number(x.rest)||90}s</small><button type="button" class="text-button" data-video-query="${encodeURIComponent(x.name)}">Vídeo</button></div>`).join('')}</div><div class="saved-workout-actions"><button type="button" class="secondary" data-edit-workout="${esc(workout.id)}">Editar</button><button type="button" class="text-button" data-activate-workout="${esc(workout.id)}">Usar hoje</button><button type="button" class="text-button" data-delete-workout="${esc(workout.id)}">Excluir</button></div></article>`).join('')+'</div>':'<p class="empty-state">Você ainda não salvou fichas. Crie uma para organizar seus exercícios e parâmetros.</p>';
+  }
+  function renderTraining() {
+    const training=state.training, workouts=training.workouts;
+    $('#completeWorkout').textContent=training.completed?'✓ Treino concluído':'Concluir treino de hoje';
+    $('#completeWorkout').classList.toggle('secondary',training.completed); $('#completeWorkout').classList.toggle('primary',!training.completed);
+    const active=workouts.find(x=>x.id===training.activeWorkoutId)||workouts[0];
+    $('#todayWorkoutDetails').innerHTML=active?`<h3>${esc(active.name)} <span class="badge">${active.exercises.length} exercícios</span></h3><p class="muted">${esc(active.schedule||'Sem dia definido')}</p><div class="exercise-list">${active.exercises.slice(0,5).map(x=>`<div><b>${esc(x.name)}</b><span>${Number(x.sets)||3} × ${esc(x.reps||'8–12')}</span></div>`).join('')}</div>${active.exercises.length>5?'<small class="muted">e mais exercícios na ficha</small>':''}`:'<div class="empty-state"><b>Nenhuma ficha ativa ainda.</b><br>Monte um treino para ver aqui a sessão do dia.</div>';
+    renderSavedWorkouts();
+    renderExerciseCatalog();
+    renderWorkoutDraft();
+    const blocks=[['Sem. 1–6','Acumulação I','Volume progressivo · RIR 2–3'],['Sem. 7–12','Acumulação II','Maior estímulo · RIR 1–2'],['Sem. 13–18','Intensificação','Carga em foco · RIR 1–2'],['Sem. 19–24','Consolidação','Volume ajustado · deload estratégico']];
+    $('#periodizationTable').innerHTML=blocks.map(b=>`<div class="block"><span class="week">${b[0]}</span><h4>${b[1]}</h4><p>${b[2]}</p></div>`).join('');
+    drawVolume();
+  }
   function renderRecovery() { const r=state.recovery, score=readiness(), sleep=sleepHours(), bed=timeInBed(), efficiency=Math.round(sleep/bed*100), regular=regularity(); $('#bedtime').value=r.bedtime; $('#wakeTime').value=r.wake; $('#sleepGoalInput').value=r.sleepGoal; $('#awakeMinutes').value=r.awake; $('#sleepQuality').value=r.quality; $('#stress').value=r.stress; $('#water').value=r.water; $('#timeAsleep').textContent=duration(sleep*60); $('#sleepWindow').textContent=`${r.bedtime} → ${r.wake} · ${r.awake} min acordado`; $('#timeInBed').textContent=duration(bed); $('#sleepEfficiency').textContent=`${efficiency}%`; $('#sleepRegularity').textContent=`${regular}%`; $('#sleepGoalProgress').textContent=`${Math.min(100,Math.round(sleep/r.sleepGoal*100))}%`; $('#sleepGoalBadge').textContent=`meta ${decimal(r.sleepGoal)} h`; drawSleepWeek([...r.history.slice(-6),sleep],r.sleepGoal); }
   function renderFocus() { const f=state.focus; $('#screenTime').value=f.screen; $('#deepFocus').value=f.deep; $('#reading').value=f.reading; $('#steps').value=f.steps; $('#screenFeedback').textContent=f.screen<=3?'Seu tempo de tela está dentro da meta. Mantenha um período sem celular antes de dormir.':`Hoje foram ${decimal(f.screen)} h de tela. Experimente deixar o celular fora do quarto e criar um bloco de 30 minutos sem notificações.`; $('#taskList').innerHTML=state.tasks.length?state.tasks.map((task,i)=>`<label class="task-item ${task.done?'done':''}"><input type="checkbox" data-task="${i}" ${task.done?'checked':''}><span>${esc(task.text)}</span></label>`).join(''):'<p class="empty-state">Nenhuma ação planejada para hoje.</p>'; }
   function renderAll() { renderOverview(); renderNutrition(); renderTraining(); renderRecovery(); renderFocus(); }
@@ -90,6 +143,44 @@
   document.addEventListener('click',event=>{const add=event.target.dataset.addMeal, remove=event.target.dataset.deleteFood, supp=event.target.dataset.supplement; if(add!==undefined) showMeal(add); if(remove!==undefined){state.food.splice(Number(remove),1);persist('Item removido do diário.');renderAll();} if(supp){state.supplements[supp]=!state.supplements[supp];persist(state.supplements[supp]?`${supp} registrado.`:`${supp} removido do registro.`);renderNutrition();}});
   $('#applyProteinGoal').addEventListener('click',()=>{state.profile.weight=Math.max(30,Number($('#bodyWeight').value)||75); state.profile.proteinFactor=Math.max(1.2,Number($('#proteinFactor').value)||1.8);state.goals.protein=Math.round(state.profile.weight*state.profile.proteinFactor);persist(`Meta de proteína ajustada para ${state.goals.protein} g.`);renderAll();});
   $('#completeWorkout').addEventListener('click',()=>{state.training.completed=!state.training.completed;persist(state.training.completed?'Treino concluído. Boa sessão!':'Treino marcado como pendente.');renderAll();});
+  const showNewWorkout=()=>openWorkoutBuilder();
+  $('#newWorkoutButton').addEventListener('click',showNewWorkout);
+  $('#newWorkoutSecondary').addEventListener('click',showNewWorkout);
+  $('#closeTrainingBuilder').addEventListener('click',()=>$('#trainingBuilder').classList.add('hidden'));
+  $('#cancelWorkoutEdit').addEventListener('click',()=>$('#trainingBuilder').classList.add('hidden'));
+  $('#exerciseSearch').addEventListener('input',renderExerciseCatalog);
+  $('#exerciseMuscleFilter').addEventListener('change',renderExerciseCatalog);
+  $('#saveWorkoutButton').addEventListener('click',()=>{
+    const name=$('#workoutName').value.trim();
+    if(!name){$('#workoutName').focus();notify('Dê um nome para a ficha antes de salvar.');return;}
+    if(!draftExercises.length){notify('Adicione pelo menos um exercício à ficha.');return;}
+    const workout={id:editingWorkoutId||makeId('workout'),name,schedule:$('#workoutSchedule').value.trim(),notes:$('#workoutNotes').value.trim(),exercises:draftExercises.map(x=>({...x}))};
+    const index=state.training.workouts.findIndex(x=>x.id===workout.id);
+    if(index>=0)state.training.workouts[index]=workout;else state.training.workouts.push(workout);
+    if(!state.training.activeWorkoutId)state.training.activeWorkoutId=workout.id;
+    $('#trainingBuilder').classList.add('hidden');draftExercises=[];editingWorkoutId=null;
+    persist('Ficha salva neste dispositivo e sincronizada quando houver conexão.');renderAll();
+  });
+  document.addEventListener('input',event=>{
+    const {draftId, draftField}=event.target.dataset;
+    if(!draftId||!draftField)return;
+    const item=draftExercises.find(x=>x.id===draftId);if(!item)return;
+    item[draftField]=['sets','load','rest'].includes(draftField)?event.target.value:event.target.value;
+  });
+  document.addEventListener('click',event=>{
+    const add=event.target.closest('[data-add-exercise]')?.dataset.addExercise;
+    const remove=event.target.closest('[data-remove-exercise]')?.dataset.removeExercise;
+    const edit=event.target.closest('[data-edit-workout]')?.dataset.editWorkout;
+    const activate=event.target.closest('[data-activate-workout]')?.dataset.activateWorkout;
+    const removeWorkout=event.target.closest('[data-delete-workout]')?.dataset.deleteWorkout;
+    const video=event.target.closest('[data-video-query]')?.dataset.videoQuery;
+    if(add){const exercise=exerciseCatalog.find(x=>x.id===add);if(exercise){draftExercises.push({...exercise,id:makeId('exercise'),sets:3,reps:'8–12',load:'',rest:90});renderWorkoutDraft();}}
+    if(remove){draftExercises=draftExercises.filter(x=>x.id!==remove);renderWorkoutDraft();}
+    if(edit){const workout=state.training.workouts.find(x=>x.id===edit);if(workout)openWorkoutBuilder(workout);}
+    if(activate){state.training.activeWorkoutId=activate;state.training.completed=false;persist('Treino definido para hoje.');renderAll();}
+    if(removeWorkout&&window.confirm('Excluir esta ficha salva?')){state.training.workouts=state.training.workouts.filter(x=>x.id!==removeWorkout);if(state.training.activeWorkoutId===removeWorkout)state.training.activeWorkoutId=state.training.workouts[0]?.id||null;persist('Ficha excluída.');renderAll();}
+    if(video){const term=decodeURIComponent(video);window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(term+' execução exercício português'),'_blank','noopener,noreferrer');}
+  });
   $('#saveRecovery').addEventListener('click',()=>{const prior=state.recovery.history||[];state.recovery={bedtime:$('#bedtime').value||'23:00',wake:$('#wakeTime').value||'07:00',sleepGoal:Number($('#sleepGoalInput').value)||8,awake:Number($('#awakeMinutes').value)||0,quality:Number($('#sleepQuality').value)||0,stress:Number($('#stress').value)||0,water:Number($('#water').value)||0,history:prior};persist('Sono salvo. Duração, eficiência e regularidade foram atualizadas.');renderAll();});
   $('#saveFocus').addEventListener('click',()=>{state.focus={screen:Number($('#screenTime').value)||0,deep:Number($('#deepFocus').value)||0,reading:Number($('#reading').value)||0,steps:Number($('#steps').value)||0};persist('Rotina atualizada.');renderAll();});
   $('#taskForm').addEventListener('submit',event=>{event.preventDefault();const input=$('#taskInput'),text=input.value.trim();if(!text)return;state.tasks.push({text,done:false});input.value='';persist('Ação adicionada à lista.');renderFocus();});
@@ -101,3 +192,4 @@
   $('#dateLabel').textContent=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long'}).format(new Date()).toUpperCase();
   renderAll(); window.addEventListener('resize',()=>{drawConsistency(dayScore());drawMacro(totals());drawVolume();});
 })();
+

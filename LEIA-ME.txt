@@ -1,0 +1,16 @@
+FITpulse — melhoria da área de treinamento
+
+Conteúdo deste pacote:
+- index.html: tela do montador de treinos e seção de fichas salvas
+- app.js: cadastro, edição, busca e persistência das fichas no estado atual do app
+- app.css: estilos responsivos do construtor
+
+Como aplicar no GitHub:
+1. Abra o repositório gabrieldalosse-star/FITpulse na branch main.
+2. Substitua os arquivos index.html, app.js e app.css da raiz pelos arquivos de mesmo nome deste pacote.
+3. Faça commit na branch main. A publicação do GitHub Pages continuará seguindo a configuração atual do repositório.
+
+O construtor salva nome, divisão/dia, observações e exercícios com séries, repetições, carga e intervalo. As fichas entram no mesmo estado do app que já é salvo no navegador e sincronizado pelo Firebase quando configurado. O botão “Ver execução” faz uma busca no YouTube pelo movimento; o FITpulse não copia nem hospeda vídeos de terceiros.
+
+Verificação feita: sintaxe JavaScript válida; IDs do HTML exigidos pelo construtor presentes e sem duplicidade.
+
