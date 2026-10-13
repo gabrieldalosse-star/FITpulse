@@ -3,6 +3,8 @@
     ['Arroz branco cozido',128,2.5,28.1,.2],['Arroz integral cozido',124,2.6,25.8,1],['Peito de frango grelhado',159,32,0,2.5],['Patinho grelhado',219,35.9,0,7.3],['Tilápia grelhada',154,31.4,0,2.2],['Salmão grelhado',229,25.4,0,14.2],['Ovo inteiro cozido',146,13.3,.6,9.5],['Clara de ovo cozida',52,11,.7,.2],['Feijão carioca cozido',76,4.8,13.6,.5],['Lentilha cozida',93,6.3,16.3,.5],['Tofu',76,8.1,1.9,4.8],['Iogurte natural',61,3.5,4.7,3.3],['Cottage',98,11,3.4,4.3],['Whey protein (pó)',400,80,8,6],['Aveia em flocos',394,13.9,66.6,8.5],['Pão integral',253,9.4,44.1,3.7],['Batata-doce cozida',76,.6,18.4,.1],['Macarrão cozido',102,3.2,19.9,.5],['Banana prata',98,1.3,26,.1],['Abacate',96,1.2,6,8.4],['Brócolis cozido',25,2.1,4.4,.5],['Azeite de oliva',884,0,0,100]
   ].map(([name,kcal,p,c,f]) => ({name,kcal,p,c,f}));
   const meals = ['Café da manhã','Almoço','Lanche','Jantar','Pós-treino'];
+  const todayKey = (date=new Date()) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  const weekStartKey = (date=new Date()) => { const monday=new Date(date.getFullYear(),date.getMonth(),date.getDate()); monday.setDate(monday.getDate()-((monday.getDay()+6)%7)); return todayKey(monday); };
   const exerciseCatalog = [
     ['Supino reto','Peito','Barra'],['Supino inclinado com halteres','Peito','Halteres'],['Crucifixo na polia','Peito','Polia'],['Flexão de braço','Peito','Peso corporal'],
     ['Remada curvada','Costas','Barra'],['Remada baixa','Costas','Polia'],['Puxada frontal','Costas','Polia'],['Levantamento terra romeno','Pernas','Barra'],
@@ -12,7 +14,7 @@
   ].map(([name,muscle,equipment],index)=>({id:`ex-${index+1}`,name,muscle,equipment}));
 
   const base = {
-    food: [], goals: { kcal: 2600, protein: 150, carbs: 330, fat: 75 }, profile: { weight: 75, proteinFactor: 1.8 },
+    food: [], goals: { kcal: 2600, protein: 150, carbs: 330, fat: 75 }, profile: { weight: 75, proteinFactor: 1.8 }, achievementLog: {},
     recovery: { bedtime: '23:00', wake: '07:00', sleepGoal: 8, awake: 15, quality: 8, stress: 4, water: 2.5, history: [7.1, 7.5, 6.8, 7.8, 7.3, 7.6] },
     focus: { screen: 3.2, deep: 90, reading: 20, steps: 7000 },
     training: { completed: false, workouts: [], activeWorkoutId: null }, supplements: { 'Creatina': false, 'Whey protein': false, 'Ômega-3': false, 'Cafeína': false },
@@ -23,7 +25,11 @@
   const number = n => new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0}).format(n || 0);
   const decimal = n => new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(n || 0);
   const esc = text => String(text).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const hydrate = source => ({...base, ...source, goals:{...base.goals,...source?.goals}, profile:{...base.profile,...source?.profile}, recovery:{...base.recovery,...source?.recovery}, focus:{...base.focus,...source?.focus}, training:{...base.training,...source?.training,workouts:Array.isArray(source?.training?.workouts)?source.training.workouts:base.training.workouts}, supplements:{...base.supplements,...source?.supplements}, food:Array.isArray(source?.food)?source.food:base.food, tasks:Array.isArray(source?.tasks)?source.tasks:base.tasks});
+  const hydrate = source => {
+    const training={...base.training,...source?.training,workouts:Array.isArray(source?.training?.workouts)?source.training.workouts:base.training.workouts};
+    if(training.currentDay!==todayKey()){training.currentDay=todayKey();training.completed=false;}
+    return {...base,...source,goals:{...base.goals,...source?.goals},profile:{...base.profile,...source?.profile},recovery:{...base.recovery,...source?.recovery},focus:{...base.focus,...source?.focus},training,achievementLog:{...source?.achievementLog},achievements:{...source?.achievements,unlocked:{...source?.achievements?.unlocked}},supplements:{...base.supplements,...source?.supplements},food:Array.isArray(source?.food)?source.food.map(item=>({...item,date:item.date||todayKey()})):base.food,tasks:Array.isArray(source?.tasks)?source.tasks:base.tasks};
+  };
   let state = hydrate(JSON.parse(localStorage.getItem('fitpulse-v2') || 'null'));
   let activeUser = null;
   let draftExercises = [];
@@ -39,7 +45,9 @@
     if (message) notify(message);
   }
   function notify(message) { const t = $('#toast'); t.textContent = message; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200); }
-  function totals() { return state.food.reduce((out, food) => ({kcal:out.kcal+food.kcal, protein:out.protein+food.p, carbs:out.carbs+food.c, fat:out.fat+food.f}), {kcal:0,protein:0,carbs:0,fat:0}); }
+  function currentFood() { return state.food.filter(food=>food.date===todayKey()); }
+  function totalsFor(items) { return items.reduce((out, food) => ({kcal:out.kcal+food.kcal, protein:out.protein+food.p, carbs:out.carbs+food.c, fat:out.fat+food.f}), {kcal:0,protein:0,carbs:0,fat:0}); }
+  function totals() { return totalsFor(currentFood()); }
   function timeInBed() { const [bh,bm] = state.recovery.bedtime.split(':').map(Number); const [wh,wm] = state.recovery.wake.split(':').map(Number); let start = bh*60+bm, end = wh*60+wm; if (end <= start) end += 1440; return (end-start)/60; }
   function sleepHours() { return Math.max(0, timeInBed() - (Number(state.recovery.awake) || 0) / 60); }
   function duration(minutes) { const h=Math.floor(minutes/60), m=Math.round(minutes%60); return `${h} h ${m} min`; }
@@ -64,14 +72,14 @@
       [state.focus.screen<=3,'Tempo de tela',`${decimal(state.focus.screen)} h hoje`]
     ];
     $('#todaySteps').innerHTML=steps.map(([done,title,sub])=>`<div class="today-step"><span class="step-icon">${done?'✓':'→'}</span><div><b>${title}</b><small>${sub}</small></div></div>`).join('');
-    const recent = state.food.slice(-5).reverse();
+    const recent = currentFood().slice(-5).reverse();
     $('#overviewMeals').innerHTML=recent.length?`<div class="summary-row muted"><span>REFEIÇÃO</span><span>ALIMENTO</span><span>QUANTIDADE</span><span>PROTEÍNA</span></div>${recent.map(x=>`<div class="summary-row"><b>${esc(x.meal)}</b><span>${esc(x.name)}</span><span>${x.grams} g</span><span>${decimal(x.p)} g</span></div>`).join('')}`:'<p class="empty-state">Seu diário ainda está vazio. Registre a primeira refeição para ver um resumo aqui.</p>';
     drawConsistency(s);
   }
   function renderNutrition() {
     const t=totals(), totalsList=[['ENERGIA',t.kcal,state.goals.kcal,'kcal'],['PROTEÍNA',t.protein,state.goals.protein,'g'],['CARBOIDRATOS',t.carbs,state.goals.carbs,'g'],['GORDURAS',t.fat,state.goals.fat,'g']];
     $('#goalStrip').innerHTML=totalsList.map(([label,val,goal,unit])=>`<div class="goal-stat"><span>${label}</span><b>${number(val)} ${unit}</b><small>de ${number(goal)} ${unit}</small></div>`).join('');
-    $('#mealList').innerHTML=meals.map(meal => { const items=state.food.map((x,i)=>({...x,i})).filter(x=>x.meal===meal); const sum=items.reduce((a,x)=>a+x.p,0); return `<article class="meal-card"><div class="meal-head"><div><h3>${meal}</h3><small>${items.length?`${items.length} item(ns) · ${decimal(sum)} g de proteína`:'Nenhum alimento registrado'}</small></div><button class="text-button" data-add-meal="${meal}">+ adicionar</button></div>${items.map(x=>`<div class="meal-row"><div><b>${esc(x.name)}</b><small>${x.grams} g</small></div><span>${number(x.kcal)} kcal</span><span>${decimal(x.p)} g prot.</span><span>${decimal(x.c)} g carb.</span><button class="delete-food" data-delete-food="${x.i}" aria-label="Remover ${esc(x.name)}">×</button></div>`).join('')}</article>`; }).join('');
+    $('#mealList').innerHTML=meals.map(meal => { const items=state.food.map((x,i)=>({...x,i})).filter(x=>x.date===todayKey()&&x.meal===meal); const sum=items.reduce((a,x)=>a+x.p,0); return `<article class="meal-card"><div class="meal-head"><div><h3>${meal}</h3><small>${items.length?`${items.length} item(ns) · ${decimal(sum)} g de proteína`:'Nenhum alimento registrado'}</small></div><button class="text-button" data-add-meal="${meal}">+ adicionar</button></div>${items.map(x=>`<div class="meal-row"><div><b>${esc(x.name)}</b><small>${x.grams} g</small></div><span>${number(x.kcal)} kcal</span><span>${decimal(x.p)} g prot.</span><span>${decimal(x.c)} g carb.</span><button class="delete-food" data-delete-food="${x.i}" aria-label="Remover ${esc(x.name)}">×</button></div>`).join('')}</article>`; }).join('');
     $('#bodyWeight').value=state.profile.weight; $('#proteinFactor').value=state.profile.proteinFactor;
     const target=Math.round(state.profile.weight*state.profile.proteinFactor); $('#proteinCalculation').textContent=`${decimal(state.profile.weight)} kg × ${decimal(state.profile.proteinFactor)} g/kg = ${target} g de proteína/dia`;
     $('#supplementList').innerHTML=Object.entries(state.supplements).map(([name,on])=>`<div class="supplement"><span>${name}</span><button class="toggle ${on?'on':''}" data-supplement="${esc(name)}" aria-label="Registrar ${esc(name)}"><i></i></button></div>`).join('');
@@ -124,7 +132,36 @@
   }
   function renderRecovery() { const r=state.recovery, score=readiness(), sleep=sleepHours(), bed=timeInBed(), efficiency=Math.round(sleep/bed*100), regular=regularity(); $('#bedtime').value=r.bedtime; $('#wakeTime').value=r.wake; $('#sleepGoalInput').value=r.sleepGoal; $('#awakeMinutes').value=r.awake; $('#sleepQuality').value=r.quality; $('#stress').value=r.stress; $('#water').value=r.water; $('#timeAsleep').textContent=duration(sleep*60); $('#sleepWindow').textContent=`${r.bedtime} → ${r.wake} · ${r.awake} min acordado`; $('#timeInBed').textContent=duration(bed); $('#sleepEfficiency').textContent=`${efficiency}%`; $('#sleepRegularity').textContent=`${regular}%`; $('#sleepGoalProgress').textContent=`${Math.min(100,Math.round(sleep/r.sleepGoal*100))}%`; $('#sleepGoalBadge').textContent=`meta ${decimal(r.sleepGoal)} h`; drawSleepWeek([...r.history.slice(-6),sleep],r.sleepGoal); }
   function renderFocus() { const f=state.focus; $('#screenTime').value=f.screen; $('#deepFocus').value=f.deep; $('#reading').value=f.reading; $('#steps').value=f.steps; $('#screenFeedback').textContent=f.screen<=3?'Seu tempo de tela está dentro da meta. Mantenha um período sem celular antes de dormir.':`Hoje foram ${decimal(f.screen)} h de tela. Experimente deixar o celular fora do quarto e criar um bloco de 30 minutos sem notificações.`; $('#taskList').innerHTML=state.tasks.length?state.tasks.map((task,i)=>`<label class="task-item ${task.done?'done':''}"><input type="checkbox" data-task="${i}" ${task.done?'checked':''}><span>${esc(task.text)}</span></label>`).join(''):'<p class="empty-state">Nenhuma ação planejada para hoje.</p>'; }
-  function renderAll() { renderOverview(); renderNutrition(); renderTraining(); renderRecovery(); renderFocus(); }
+  function updateAchievements() {
+    const log=state.achievementLog||(state.achievementLog={}), unlocked=state.achievements.unlocked, today=todayKey();
+    const t=totals(), foodMet=t.kcal>=state.goals.kcal*.8&&t.protein>=state.goals.protein*.8, trainingMet=Boolean(state.training.completed);
+    const changed=JSON.stringify(log[today])!==JSON.stringify({food:foodMet,training:trainingMet}); log[today]={food:foodMet,training:trainingMet};
+    const week=weekStartKey(), month=today.slice(0,7), rows=Object.entries(log);
+    const weekRows=rows.filter(([date])=>date>=week&&date<=today).map(([,value])=>value), monthRows=rows.filter(([date])=>date.startsWith(month)).map(([,value])=>value);
+    const foodWeek=weekRows.filter(x=>x.food).length, trainingWeek=weekRows.filter(x=>x.training).length, foodMonth=monthRows.filter(x=>x.food).length, trainingMonth=monthRows.filter(x=>x.training).length;
+    const goals=[['day-food',foodMet,'Hoje'],['day-training',trainingMet,'Hoje'],['week-food',foodWeek>=5,'Semana'],['week-training',trainingWeek>=3,'Semana'],['month-food',foodMonth>=20,'Mês'],['month-training',trainingMonth>=12,'Mês']];
+    const justUnlocked=[];
+    for(const [key,qualified] of goals){const period=key.startsWith('day-')?today:key.startsWith('week-')?week:month;const id=`${key}-${period}`;if(qualified&&!unlocked[id]){unlocked[id]=new Date().toISOString();justUnlocked.push(id);}}
+    const anyChanged=changed||justUnlocked.length>0;
+    if(anyChanged)persist(justUnlocked.length?`🔓 Meta desbloqueada! ${justUnlocked.length>1?'Novas conquistas liberadas.':'Sua consistência está aparecendo.'}`:undefined);
+    return justUnlocked;
+  }
+  function renderAchievements(justUnlocked=[]) {
+    const today=todayKey(),week=weekStartKey(),month=today.slice(0,7),log=state.achievementLog,unlocked=state.achievements.unlocked;
+    const rows=Object.entries(log),weekRows=rows.filter(([date])=>date>=week&&date<=today).map(([,v])=>v),monthRows=rows.filter(([date])=>date.startsWith(month)).map(([,v])=>v);
+    const t=totals(),foodProgress=Math.min(t.kcal/state.goals.kcal,t.protein/state.goals.protein)/.8*100;
+    const cards=[
+      {key:'day-food',period:today,title:'Prato em equilíbrio',detail:'Energia + proteína no alvo',progress:Math.min(100,foodProgress),value:`${Math.round(Math.min(100,foodProgress))}%`,id:`day-food-${today}`},
+      {key:'day-training',period:today,title:'Treino do dia',detail:'Conclua sua sessão planejada',progress:state.training.completed?100:0,value:state.training.completed?'1/1':'0/1',id:`day-training-${today}`},
+      {key:'week-food',period:week,title:'Ritmo alimentar',detail:'5 dias com metas atingidas',progress:weekRows.filter(x=>x.food).length/5*100,value:`${weekRows.filter(x=>x.food).length}/5 dias`,id:`week-food-${week}`},
+      {key:'week-training',period:week,title:'Semana em movimento',detail:'3 sessões concluídas',progress:weekRows.filter(x=>x.training).length/3*100,value:`${weekRows.filter(x=>x.training).length}/3 sessões`,id:`week-training-${week}`},
+      {key:'month-food',period:month,title:'Constância à mesa',detail:'20 dias com metas atingidas',progress:monthRows.filter(x=>x.food).length/20*100,value:`${monthRows.filter(x=>x.food).length}/20 dias`,id:`month-food-${month}`},
+      {key:'month-training',period:month,title:'Mês de evolução',detail:'12 sessões concluídas',progress:monthRows.filter(x=>x.training).length/12*100,value:`${monthRows.filter(x=>x.training).length}/12 sessões`,id:`month-training-${month}`}
+    ];
+    const opened=Object.keys(unlocked).length;$('#achievementCount').textContent=`${opened} ${opened===1?'aberta':'abertas'}`;
+    $('#goalAchievements').innerHTML=cards.map(card=>{const isOpen=Boolean(unlocked[card.id]);return `<article class="goal-card ${isOpen?'is-unlocked':'is-locked'} ${justUnlocked.includes(card.id)?'just-unlocked':''}"><span class="goal-lock" aria-hidden="true"><span class="closed-lock">🔒</span><span class="open-lock">🔓</span></span><div class="goal-card-copy"><small>${card.key.startsWith('day-')?'DIÁRIA':card.key.startsWith('week-')?'SEMANAL':'MENSAL'} · ${card.key.includes('food')?'COMIDA':'TREINO'}</small><b>${card.title}</b><span>${isOpen?'Conquista liberada':card.detail}</span></div><div class="goal-progress"><i style="--progress:${Math.min(100,card.progress)}%"></i></div><em>${isOpen?'DESBLOQUEADA':card.value}</em></article>`;}).join('');
+  }
+  function renderAll() { const justUnlocked=updateAchievements(); renderOverview(); renderAchievements(justUnlocked); renderNutrition(); renderTraining(); renderRecovery(); renderFocus(); }
 
   function drawCanvas(id, draw) { const canvas=$(id); if (!canvas) return; const rect=canvas.getBoundingClientRect(), ratio=window.devicePixelRatio||1; canvas.width=Math.max(1,rect.width*ratio); canvas.height=Math.max(1,rect.height*ratio); const ctx=canvas.getContext('2d'); ctx.scale(ratio,ratio); draw(ctx,rect.width,rect.height); }
   function drawConsistency(today) { drawCanvas('#consistencyChart',(ctx,w,h)=>{const vals=[58,72,68,83,64,77,today], labels=['Seg','Ter','Qua','Qui','Sex','Sáb','Hoje'], pad={x:25,y:18,b:28}, chartH=h-pad.y-pad.b, step=(w-pad.x-12)/(vals.length-1); ctx.clearRect(0,0,w,h); for(let i=0;i<4;i++){const y=pad.y+chartH*i/3;ctx.strokeStyle='#e8ede9';ctx.beginPath();ctx.moveTo(pad.x,y);ctx.lineTo(w-10,y);ctx.stroke();}const target=pad.y+chartH*(1-.8);ctx.setLineDash([4,4]);ctx.strokeStyle='#f4a261';ctx.beginPath();ctx.moveTo(pad.x,target);ctx.lineTo(w-10,target);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle='#146b5c';ctx.lineWidth=3;ctx.beginPath();vals.forEach((v,i)=>{const x=pad.x+i*step,y=pad.y+chartH*(1-v/100);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();vals.forEach((v,i)=>{const x=pad.x+i*step,y=pad.y+chartH*(1-v/100);ctx.fillStyle='#146b5c';ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill();ctx.fillStyle='#71807a';ctx.textAlign='center';ctx.font='10px system-ui';ctx.fillText(labels[i],x,h-8);}); }); }
@@ -133,16 +170,16 @@
   function drawSleepWeek(values, goal) { drawCanvas('#sleepWeekChart',(ctx,w,h)=>{const labels=['Seg','Ter','Qua','Qui','Sex','Sáb','Hoje'], pad={l:25,r:10,t:18,b:28}, max=10, chartH=h-pad.t-pad.b, step=(w-pad.l-pad.r)/values.length, barW=Math.min(28,step*.55);ctx.clearRect(0,0,w,h);for(let i=0;i<4;i++){const y=pad.t+chartH*i/3;ctx.strokeStyle='#e5ecf0';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();}const gy=pad.t+chartH*(1-goal/max);ctx.setLineDash([4,4]);ctx.strokeStyle='#76b6d7';ctx.beginPath();ctx.moveTo(pad.l,gy);ctx.lineTo(w-pad.r,gy);ctx.stroke();ctx.setLineDash([]);values.forEach((v,i)=>{const x=pad.l+step*i+(step-barW)/2, bh=chartH*Math.min(v/max,1), y=pad.t+chartH-bh;ctx.fillStyle=i===values.length-1?'#315b88':'#8bb6da';ctx.beginPath();ctx.roundRect(x,y,barW,bh,5);ctx.fill();ctx.fillStyle='#71807a';ctx.font='10px system-ui';ctx.textAlign='center';ctx.fillText(labels[i],x+barW/2,h-8);});}); }
   function renderFoodPreview() { const food=foods[Number($('#foodInput').value)||0], grams=Math.max(1,Number($('#gramsInput').value)||0), scale=grams/100; $('#foodPreview').innerHTML=`<b>${food.name} · ${grams} g</b><br>${number(food.kcal*scale)} kcal · ${decimal(food.p*scale)} g proteína · ${decimal(food.c*scale)} g carboidratos · ${decimal(food.f*scale)} g gorduras`; }
   function showMeal(meal) { $('#mealInput').value=meal||'Café da manhã'; $('#mealDialog').showModal(); renderFoodPreview(); }
-  function activateView(id) { $$('.nav-link').forEach(btn=>btn.classList.toggle('active',btn.dataset.view===id)); $$('.view').forEach(view=>view.classList.toggle('active',view.id===id)); const names={overview:'Visão geral',nutrition:'Nutrição',training:'Treino & periodização',recovery:'Recuperação',focus:'Foco & rotina'}; $('#pageTitle').textContent=names[id]; if(id==='overview') drawConsistency(dayScore()); if(id==='nutrition') drawMacro(totals()); if(id==='training') drawVolume(); if(id==='recovery') renderRecovery(); window.scrollTo({top:0,behavior:'smooth'}); }
+  function activateView(id) { $$('.nav-link').forEach(btn=>btn.classList.toggle('active',btn.dataset.view===id)); $$('.view').forEach(view=>view.classList.toggle('active',view.id===id)); const names={overview:'Visão geral',nutrition:'Nutrição',training:'Treino & periodização',recovery:'Recuperação',focus:'Foco & rotina'}; $('#pageTitle').textContent=names[id]; if(id==='overview') drawConsistency(dayScore()); if(id==='nutrition') drawMacro(totals()); if(id==='training') drawVolume(); if(id==='recovery') renderRecovery(); window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); }
 
   $$('.nav-link').forEach(button=>button.addEventListener('click',()=>activateView(button.dataset.view)));
   $('[data-jump="nutrition"]').addEventListener('click',()=>activateView('nutrition'));
   $('#quickMeal').addEventListener('click',()=>showMeal()); $('#openMealForm').addEventListener('click',()=>showMeal());
   $('#foodInput').addEventListener('change',renderFoodPreview); $('#gramsInput').addEventListener('input',renderFoodPreview);
-  $('#saveFood').addEventListener('click',()=>{const food=foods[Number($('#foodInput').value)||0], grams=Math.max(1,Number($('#gramsInput').value)||0), s=grams/100; state.food.push({name:food.name,grams:Math.round(grams),meal:$('#mealInput').value,kcal:food.kcal*s,p:food.p*s,c:food.c*s,f:food.f*s}); $('#mealDialog').close(); persist('Refeição registrada. O resumo do dia foi atualizado.'); renderAll();});
+  $('#saveFood').addEventListener('click',()=>{const food=foods[Number($('#foodInput').value)||0], grams=Math.max(1,Number($('#gramsInput').value)||0), s=grams/100; state.food.push({date:todayKey(),name:food.name,grams:Math.round(grams),meal:$('#mealInput').value,kcal:food.kcal*s,p:food.p*s,c:food.c*s,f:food.f*s}); $('#mealDialog').close(); persist('Refeição registrada. O resumo do dia foi atualizado.'); renderAll();});
   document.addEventListener('click',event=>{const add=event.target.dataset.addMeal, remove=event.target.dataset.deleteFood, supp=event.target.dataset.supplement; if(add!==undefined) showMeal(add); if(remove!==undefined){state.food.splice(Number(remove),1);persist('Item removido do diário.');renderAll();} if(supp){state.supplements[supp]=!state.supplements[supp];persist(state.supplements[supp]?`${supp} registrado.`:`${supp} removido do registro.`);renderNutrition();}});
   $('#applyProteinGoal').addEventListener('click',()=>{state.profile.weight=Math.max(30,Number($('#bodyWeight').value)||75); state.profile.proteinFactor=Math.max(1.2,Number($('#proteinFactor').value)||1.8);state.goals.protein=Math.round(state.profile.weight*state.profile.proteinFactor);persist(`Meta de proteína ajustada para ${state.goals.protein} g.`);renderAll();});
-  $('#completeWorkout').addEventListener('click',()=>{state.training.completed=!state.training.completed;persist(state.training.completed?'Treino concluído. Boa sessão!':'Treino marcado como pendente.');renderAll();});
+  $('#completeWorkout').addEventListener('click',()=>{state.training.currentDay=todayKey();state.training.completed=!state.training.completed;persist(state.training.completed?'Treino concluído. Boa sessão!':'Treino marcado como pendente.');renderAll();});
   const showNewWorkout=()=>openWorkoutBuilder();
   $('#newWorkoutButton').addEventListener('click',showNewWorkout);
   $('#newWorkoutSecondary').addEventListener('click',showNewWorkout);

@@ -1,16 +1,26 @@
-FITpulse — melhoria da área de treinamento
+FITpulse — artes, transições e metas desbloqueáveis
 
-Conteúdo deste pacote:
-- index.html: tela do montador de treinos e seção de fichas salvas
-- app.js: cadastro, edição, busca e persistência das fichas no estado atual do app
-- app.css: estilos responsivos do construtor
+Este pacote atualiza o FITpulse com:
+- Tela de entrada centralizada e arte original para o login.
+- Três novas artes para Treino, Recuperação e Foco.
+- Transições responsivas para troca de telas, hover no desktop e desbloqueio animado de cadeados.
+- Acessibilidade de movimento: animações e rolagem suave são reduzidas se o dispositivo pedir menos movimento.
+- Seis metas diárias, semanais e mensais de alimentação e treino.
+- Montador de fichas de treino, já incluído nesta versão, com catálogo e busca de execução no YouTube.
+
+Como as metas funcionam:
+- Alimentação diária: atingir pelo menos 80% das metas de calorias e proteína.
+- Alimentação semanal/mensal: atingir a meta diária em 5 dias na semana / 20 dias no mês.
+- Treino diário/semanal/mensal: concluir 1 sessão no dia / 3 na semana / 12 no mês.
+- A contagem semanal e mensal começa com os registros desta versão; dias anteriores sem histórico datado não são presumidos.
 
 Como aplicar no GitHub:
-1. Abra o repositório gabrieldalosse-star/FITpulse na branch main.
-2. Substitua os arquivos index.html, app.js e app.css da raiz pelos arquivos de mesmo nome deste pacote.
-3. Faça commit na branch main. A publicação do GitHub Pages continuará seguindo a configuração atual do repositório.
+1. Abra gabrieldalosse-star/FITpulse na branch main.
+2. Substitua os arquivos index.html, app.js e app.css na raiz.
+3. Envie a pasta assets com os quatro arquivos .webp deste pacote.
+4. Mantenha os demais arquivos do projeto (como firebase-sync.js, firebase-config.js e sleep.css).
+5. Faça commit na branch main. O GitHub Pages publica conforme a configuração atual do repositório.
 
-O construtor salva nome, divisão/dia, observações e exercícios com séries, repetições, carga e intervalo. As fichas entram no mesmo estado do app que já é salvo no navegador e sincronizado pelo Firebase quando configurado. O botão “Ver execução” faz uma busca no YouTube pelo movimento; o FITpulse não copia nem hospeda vídeos de terceiros.
+O botão “Continuar com Google” mantém o fluxo Firebase existente. O login exige o provedor Google habilitado e o domínio publicado autorizado no Firebase. O histórico de conquistas é salvo no estado local do FITpulse e sincroniza pelo Firebase configurado.
 
-Verificação feita: sintaxe JavaScript válida; IDs do HTML exigidos pelo construtor presentes e sem duplicidade.
-
+Verificações feitas: sintaxe JavaScript; IDs do HTML e seletores do app; destinos das quatro imagens; integridade básica do CSS.

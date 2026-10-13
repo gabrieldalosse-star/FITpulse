@@ -3,22 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0d201c">
+  <meta name="theme-color" content="#171126">
   <title>FITpulse | Plataforma de performance</title>
   <link rel="stylesheet" href="./app.css">
   <link rel="stylesheet" href="./sleep.css">
 </head>
 <body>
   <section class="auth-gate" id="authGate" aria-live="polite">
-    <div class="auth-art"><div class="orb orb-a"></div><div class="orb orb-b"></div><div class="pulse-ring">↗</div></div>
+    <div class="auth-art" aria-hidden="true"></div>
     <div class="auth-card">
       <div class="brand"><span class="brand-mark">↗</span><span>FITpulse</span></div>
-      <p class="eyebrow">PERFORMANCE COM INTENÇÃO</p>
-      <h1>Um painel sério para quem treina.</h1>
-      <p class="lead">Nutrição, treino, recuperação e foco em uma rotina que você consegue acompanhar.</p>
-      <button class="google-button" id="loginButton"><span>G</span> Entrar com Google</button>
-      <p class="auth-note" id="authMessage">Use sua conta para manter seus dados privados e sincronizados.</p>
-      <div class="auth-points"><span>✓ dados individuais</span><span>✓ estimativas nutricionais</span><span>✓ progresso semanal</span></div>
+      <p class="eyebrow">SEU RITMO. SUA EVOLUÇÃO.</p>
+      <h1>Treine com intenção.</h1>
+      <p class="lead">Organize seus treinos, acompanhe sua rotina e evolua no seu ritmo.</p>
+      <button class="google-button" id="loginButton" type="button"><span aria-hidden="true">G</span> Continuar com Google</button>
+      <p class="auth-note" id="authMessage">Entre com sua conta Google para acessar seu espaço pessoal.</p>
+      <div class="auth-points"><span>✓ Seus dados sincronizados</span><span>✓ Sua rotina em um só lugar</span></div>
+      <p class="auth-privacy">Acesso seguro com sua conta Google</p>
     </div>
   </section>
 
@@ -47,6 +48,7 @@
           <article class="metric-card"><span>SONO</span><strong id="sleepMetric">-- h</strong><small id="sleepGoal">registre seu descanso</small><div class="meter"><i id="sleepMeter"></i></div></article>
           <article class="metric-card"><span>TEMPO DE TELA</span><strong id="screenMetric">-- h</strong><small id="screenGoal">meta: até 3 h</small><div class="meter"><i id="screenMeter"></i></div></article>
         </div>
+        <section class="panel goals-panel" aria-labelledby="goalsTitle"><div class="panel-head goals-panel-head"><div><p class="eyebrow">CONQUISTAS FITPULSE</p><h3 id="goalsTitle">Desbloqueie suas metas</h3><p>Pequenas vitórias de alimentação e treino, em cada escala.</p></div><span class="achievement-total" id="achievementCount">0 abertas</span></div><div class="goal-achievements" id="goalAchievements"></div></section>
         <div class="dashboard-grid">
           <article class="panel chart-panel"><div class="panel-head"><div><p class="eyebrow">ÚLTIMOS 7 DIAS</p><h3>Consistência da rotina</h3></div><span class="badge">meta 80</span></div><canvas id="consistencyChart" aria-label="Gráfico da consistência nos últimos sete dias"></canvas><div class="chart-key"><span><i></i> pontuação do dia</span><span><i class="target"></i> meta</span></div></article>
           <article class="panel today-panel"><div class="panel-head"><div><p class="eyebrow">PRÓXIMO PASSO</p><h3>Roteiro de hoje</h3></div></div><div id="todaySteps"></div></article>
@@ -70,7 +72,7 @@
       </section>
 
       <section class="view" id="training">
-        <div class="section-title"><div><p class="eyebrow">TREINO & PERIODIZAÇÃO</p><h1>Monte suas sessões.</h1><p>Crie fichas, ajuste séries, repetições, carga e descanso. Consulte uma demonstração quando precisar revisar a execução.</p></div><div class="training-actions"><button class="secondary" id="newWorkoutButton">+ Montar treino</button><button class="primary" id="completeWorkout">Concluir treino de hoje</button></div></div>
+        <div class="section-title training-visual"><div><p class="eyebrow">TREINO & PERIODIZAÇÃO</p><h1>Monte suas sessões.</h1><p>Crie fichas, ajuste séries, repetições, carga e descanso. Consulte uma demonstração quando precisar revisar a execução.</p></div><div class="training-actions"><button class="secondary" id="newWorkoutButton">+ Montar treino</button><button class="primary" id="completeWorkout">Concluir treino de hoje</button></div></div>
         <div class="training-top"><article class="panel session-card"><p class="eyebrow">TREINO ATIVO</p><div id="todayWorkoutDetails"></div><p class="evidence">Marcar a sessão atualiza o registro diário de consistência.</p></article><article class="panel chart-panel"><div class="panel-head"><div><p class="eyebrow">VOLUME PLANEJADO</p><h3>Progressão por bloco</h3></div></div><canvas id="volumeChart" aria-label="Gráfico de volume ao longo da periodização"></canvas></article></div>
         <article class="panel workout-library-panel"><div class="panel-head"><div><p class="eyebrow">SEUS TREINOS</p><h3>Fichas salvas</h3></div><button class="text-button" id="newWorkoutSecondary">+ Criar ficha</button></div><div id="savedWorkoutList"></div></article>
         <article class="panel training-builder hidden" id="trainingBuilder"><div class="panel-head"><div><p class="eyebrow" id="builderEyebrow">NOVA FICHA</p><h3 id="builderTitle">Monte seu treino</h3></div><button class="dialog-close builder-close" id="closeTrainingBuilder" type="button" aria-label="Fechar editor">×</button></div>
@@ -84,13 +86,13 @@
       </section>
 
       <section class="view" id="recovery">
-        <div class="section-title"><div><p class="eyebrow">RECUPERAÇÃO</p><h1>Dados que orientam carga</h1><p>Registre sono, estresse e hidratação. O indicador é uma leitura simples, não um diagnóstico.</p></div></div>
+        <div class="section-title recovery-visual"><div><p class="eyebrow">RECUPERAÇÃO</p><h1>Dados que orientam carga</h1><p>Registre sono, estresse e hidratação. O indicador é uma leitura simples, não um diagnóstico.</p></div></div>
         <div class="sleep-overview"><article class="sleep-hero"><div><p>SONO DE HOJE</p><strong id="timeAsleep">-- h -- min</strong><span id="sleepWindow">registre seu horário de dormir e acordar</span></div><div class="sleep-goal-ring"><b id="sleepGoalProgress">--%</b><small>da meta</small></div></article><article class="sleep-stat"><span>NOITE NA CAMA</span><b id="timeInBed">-- h</b><small>do horário de dormir ao despertar</small></article><article class="sleep-stat"><span>EFICIÊNCIA</span><b id="sleepEfficiency">--%</b><small>descontando tempo acordado</small></article><article class="sleep-stat"><span>REGULARIDADE</span><b id="sleepRegularity">--%</b><small>consistência de horário</small></article></div>
         <div class="recovery-layout"><article class="panel"><p class="eyebrow">AGENDAMENTO DE SONO</p><h3>Seu horário, como no app Saúde</h3><div class="form-grid two-cols"><label>Hora de dormir<input id="bedtime" type="time"></label><label>Hora de acordar<input id="wakeTime" type="time"></label><label>Meta de sono (horas)<input id="sleepGoalInput" type="number" min="5" max="12" step="0.5"></label><label>Tempo acordado (min)<input id="awakeMinutes" type="number" min="0" max="180" step="5"></label><label>Qualidade (0–10)<input id="sleepQuality" type="number" min="0" max="10" step="1"></label><label>Estresse (0–10)<input id="stress" type="number" min="0" max="10" step="1"></label><label>Água (litros)<input id="water" type="number" min="0" max="10" step="0.1"></label></div><button class="primary" id="saveRecovery">Salvar sono e recuperação</button></article><article class="panel sleep-chart-panel"><div class="panel-head"><div><p class="eyebrow">ÚLTIMOS 7 DIAS</p><h3>Duração e regularidade</h3></div><span class="badge" id="sleepGoalBadge">meta -- h</span></div><canvas id="sleepWeekChart" aria-label="Gráfico semanal da duração do sono"></canvas><p class="evidence">O FITpulse calcula tempo na cama, tempo acordado informado e duração estimada. Não infere estágios do sono.</p></article></div>
       </section>
 
       <section class="view" id="focus">
-        <div class="section-title"><div><p class="eyebrow">FOCO & ROTINA</p><h1>Proteja as horas que importam.</h1><p>Tempo de tela, organização e pequenas ações que deixam o treino caber na semana.</p></div></div>
+        <div class="section-title focus-visual"><div><p class="eyebrow">FOCO & ROTINA</p><h1>Proteja as horas que importam.</h1><p>Tempo de tela, organização e pequenas ações que deixam o treino caber na semana.</p></div></div>
         <div class="focus-layout"><article class="panel"><h3>Uso do celular e rotina</h3><div class="form-grid two-cols"><label>Tempo de tela (horas)<input id="screenTime" type="number" min="0" max="24" step="0.1"></label><label>Foco profundo (min)<input id="deepFocus" type="number" min="0" max="720" step="5"></label><label>Leitura (min)<input id="reading" type="number" min="0" max="720" step="5"></label><label>Passos<input id="steps" type="number" min="0" max="100000" step="500"></label></div><button class="primary" id="saveFocus">Salvar rotina</button><p class="screen-feedback" id="screenFeedback"></p></article><article class="panel"><div class="panel-head"><div><p class="eyebrow">CHECKLIST</p><h3>Organização de hoje</h3></div></div><form class="task-add" id="taskForm"><input id="taskInput" placeholder="Ex.: deixar refeição do pós-treino pronta"><button class="secondary">Adicionar</button></form><div id="taskList"></div></article></div>
       </section>
     </div>
