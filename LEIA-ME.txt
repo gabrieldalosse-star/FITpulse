@@ -1,26 +1,24 @@
-FITpulse — artes, transições e metas desbloqueáveis
+FITpulse — temas WHITE / DARK / RED, treino turbo e playlists Spotify
 
-Este pacote atualiza o FITpulse com:
-- Tela de entrada centralizada e arte original para o login.
-- Três novas artes para Treino, Recuperação e Foco.
-- Transições responsivas para troca de telas, hover no desktop e desbloqueio animado de cadeados.
-- Acessibilidade de movimento: animações e rolagem suave são reduzidas se o dispositivo pedir menos movimento.
-- Seis metas diárias, semanais e mensais de alimentação e treino.
-- Montador de fichas de treino, já incluído nesta versão, com catálogo e busca de execução no YouTube.
+Esta versão mantém o login Google, o dashboard e o montador de treinos. Inclui:
+- Seletor de tema WHITE (claro), DARK (escuro) e RED (vermelho), salvo na conta/dispositivo.
+- RED: mensagens motivacionais e painel Turbo preparado na área de treino.
+- Turbo: cronômetro de foco de 45 minutos com iniciar, pausar, retomar e encerrar. A contagem só começa após tocar em “Iniciar”. O texto reforça técnica e controle da carga.
+- Artes responsivas de entrada, treino, recuperação e foco, com transições para web e celular e respeito à preferência por movimento reduzido.
+- Metas desbloqueáveis: alimentação diária no mínimo a 80% das metas de energia e proteína; 5 dias por semana e 20 no mês. Treino: 1 sessão por dia, 3 por semana e 12 por mês.
+- Spotify por tema: escolha WHITE, DARK ou RED, cole o link de uma playlist pública e salve. O app valida o link de playlist do Spotify e abre o player incorporado daquele tema. Cada playlist fica salva separadamente.
 
-Como as metas funcionam:
-- Alimentação diária: atingir pelo menos 80% das metas de calorias e proteína.
-- Alimentação semanal/mensal: atingir a meta diária em 5 dias na semana / 20 dias no mês.
-- Treino diário/semanal/mensal: concluir 1 sessão no dia / 3 na semana / 12 no mês.
-- A contagem semanal e mensal começa com os registros desta versão; dias anteriores sem histórico datado não são presumidos.
+Spotify: a implementação usa o Embed oficial por iframe, sem OAuth nem segredo de API no site. A reprodução segue as regras do player do Spotify e pode pedir login ou oferecer prévia, conforme a conta e o dispositivo. Documentação: https://developer.spotify.com/documentation/embeds
+
+As contagens semanais e mensais começam com os registros desta versão; dias anteriores sem histórico datado não são presumidos.
 
 Como aplicar no GitHub:
 1. Abra gabrieldalosse-star/FITpulse na branch main.
-2. Substitua os arquivos index.html, app.js e app.css na raiz.
-3. Envie a pasta assets com os quatro arquivos .webp deste pacote.
-4. Mantenha os demais arquivos do projeto (como firebase-sync.js, firebase-config.js e sleep.css).
-5. Faça commit na branch main. O GitHub Pages publica conforme a configuração atual do repositório.
+2. Substitua index.html, app.js e app.css na raiz.
+3. Envie também a pasta assets com os quatro arquivos .webp.
+4. Mantenha os demais arquivos do projeto, incluindo firebase-sync.js, firebase-config.js e sleep.css.
+5. Faça commit na branch main; o GitHub Pages publicará conforme a configuração atual.
 
-O botão “Continuar com Google” mantém o fluxo Firebase existente. O login exige o provedor Google habilitado e o domínio publicado autorizado no Firebase. O histórico de conquistas é salvo no estado local do FITpulse e sincroniza pelo Firebase configurado.
+O login Google continua usando o fluxo Firebase existente. O Firebase precisa estar configurado, com o provedor Google habilitado e o domínio publicado autorizado. As playlists e preferências de tema/turbo ficam no estado do FITpulse, localmente e sincronizadas pelo Firebase configurado.
 
-Verificações feitas: sintaxe JavaScript; IDs do HTML e seletores do app; destinos das quatro imagens; integridade básica do CSS.
+Verificações: sintaxe JS; IDs e seletores; destinos das artes; integridade básica do CSS.
