@@ -1,4 +1,4 @@
-# FitPulse Vital
+# FITpulse
 
 Aplicativo estático para organizar treino, dieta, recuperação e produtividade. Os dados ficam no navegador por padrão; a sincronização com Firestore é opcional.
 
