@@ -1,16 +1,15 @@
-FITpulse — temas WHITE / DARK / RED, treino turbo e playlists Spotify
+FITpulse — temas, treino Turbo, Spotify e cronômetro de descanso
 
-Esta versão mantém o login Google, o dashboard e o montador de treinos. Inclui:
-- Seletor de tema WHITE (claro), DARK (escuro) e RED (vermelho), salvo na conta/dispositivo.
-- RED: mensagens motivacionais e painel Turbo preparado na área de treino.
-- Turbo: cronômetro de foco de 45 minutos com iniciar, pausar, retomar e encerrar. A contagem só começa após tocar em “Iniciar”. O texto reforça técnica e controle da carga.
-- Artes responsivas de entrada, treino, recuperação e foco, com transições para web e celular e respeito à preferência por movimento reduzido.
-- Metas desbloqueáveis: alimentação diária no mínimo a 80% das metas de energia e proteína; 5 dias por semana e 20 no mês. Treino: 1 sessão por dia, 3 por semana e 12 por mês.
-- Spotify por tema: escolha WHITE, DARK ou RED, cole o link de uma playlist pública e salve. O app valida o link de playlist do Spotify e abre o player incorporado daquele tema. Cada playlist fica salva separadamente.
+Esta versão mantém o login Google, o dashboard e o montador de fichas. Inclui:
+- Menu separado “Aparência” com WHITE (claro), DARK (escuro moderno) e RED (base escura com detalhes vermelhos); a preferência fica salva por usuário/dispositivo. RED mostra mensagens motivacionais e prepara o painel Turbo.
+- Turbo: sprint de foco de 45 minutos, com iniciar, pausar, retomar e encerrar. O cronômetro começa após tocar em “Iniciar”. A orientação mantém foco em técnica e controle.
+- Spotify por tema: escolha WHITE, DARK ou RED, cole o link de uma playlist pública e salve. O app valida playlists do Spotify e mostra o player oficial para o tema selecionado. Sem OAuth nem segredo de API no site; a reprodução segue as regras do Spotify.
+- Descanso por exercício: use o intervalo em segundos definido na ficha. O botão começa a contagem regressiva; há opções de pausar, retomar e encerrar, com aviso sonoro ao terminar e vibração quando compatível. Deixe o app aberto e com som permitido para ouvir o alerta; navegadores podem suspender timers em segundo plano.
+- Artes responsivas de entrada, treino, recuperação e foco, com transições para web/celular e respeito à preferência por movimento reduzido.
+- Seis metas desbloqueáveis: alimentação diária a partir de 80% das metas de energia e proteína; 5 dias na semana e 20 no mês. Treino: 1 sessão por dia, 3 por semana e 12 por mês.
+- Botão “Trocar conta” no cabeçalho retorna ao login Google. Os dados locais são armazenados por usuário quando a sessão Firebase está ativa.
 
-Spotify: a implementação usa o Embed oficial por iframe, sem OAuth nem segredo de API no site. A reprodução segue as regras do player do Spotify e pode pedir login ou oferecer prévia, conforme a conta e o dispositivo. Documentação: https://developer.spotify.com/documentation/embeds
-
-As contagens semanais e mensais começam com os registros desta versão; dias anteriores sem histórico datado não são presumidos.
+As contagens semanais/mensais começam com os registros desta versão; dias anteriores sem histórico datado não são presumidos.
 
 Como aplicar no GitHub:
 1. Abra gabrieldalosse-star/FITpulse na branch main.
@@ -19,6 +18,6 @@ Como aplicar no GitHub:
 4. Mantenha os demais arquivos do projeto, incluindo firebase-sync.js, firebase-config.js e sleep.css.
 5. Faça commit na branch main; o GitHub Pages publicará conforme a configuração atual.
 
-O login Google continua usando o fluxo Firebase existente. O Firebase precisa estar configurado, com o provedor Google habilitado e o domínio publicado autorizado. As playlists e preferências de tema/turbo ficam no estado do FITpulse, localmente e sincronizadas pelo Firebase configurado.
+Troca de conta e sincronização dependem do Firebase configurado e do provedor Google habilitado/autorizado. As playlists, os temas e os timers ficam no estado do app e sincronizam pelo Firebase disponível.
 
-Verificações: sintaxe JS; IDs e seletores; destinos das artes; integridade básica do CSS.
+Verificações feitas: sintaxe JS; IDs e seletores do HTML; três opções no menu Aparência; destinos das imagens; chaves do CSS balanceadas.
