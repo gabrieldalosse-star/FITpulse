@@ -4,7 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#102a2d" />
-  <title>FitPulse Vital</title>
+  <title>FITpulse | Hipertrofia baseada em evidências</title>
+  <link rel="stylesheet" href="./pro.css" />
   <style>
     :root { --ink:#13252a; --muted:#68777c; --paper:#f6f8f6; --panel:#fff; --line:#e5ece8; --forest:#17685b; --lime:#d9f36a; --orange:#f3a65a; --pink:#ee7c8c; --blue:#73b9d5; --soft:#eaf3ef; }
     * { box-sizing:border-box } body { margin:0; background:var(--paper); color:var(--ink); font:14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
@@ -27,7 +28,7 @@
 </head>
 <body>
   <main class="shell">
-    <header class="top"><div class="brand"><div class="mark">↗</div><div><h1>FitPulse Vital</h1><p class="sub" id="todayLabel">Seu sistema diário de evolução</p></div></div><div class="top-actions"><button class="secondary" id="authButton">Entrar com Google</button><div class="status" id="dayStatus">Dia em andamento</div></div></header>
+    <header class="top"><div class="brand"><div class="mark">↗</div><div><h1>FITpulse</h1><p class="sub" id="todayLabel">Seu sistema diário de evolução</p></div></div><div class="top-actions"><button class="secondary" id="authButton">Entrar com Google</button><div class="status" id="dayStatus">Dia em andamento</div></div></header>
     <nav class="tabs" aria-label="Navegação principal"><button class="tab active" data-view="home">Hoje</button><button class="tab" data-view="diet">Dieta</button><button class="tab" data-view="training">Treino</button><button class="tab" data-view="recovery">Recuperação</button><button class="tab" data-view="focus">Foco</button></nav>
 
     <section id="home" class="view active">
@@ -47,7 +48,7 @@
   <script type="module" src="./firebase-sync.js"></script>
   <script>
   const foodDB = [
-    ['Arroz cozido',130,2.5,28.2,0.3],['Frango grelhado',165,31,0,3.6],['Ovo inteiro',143,12.6,0.7,9.5],['Banana',89,1.1,22.8,0.3],['Aveia',389,16.9,66.3,6.9],['Feijão cozido',76,4.8,13.6,0.5],['Iogurte natural',61,3.5,4.7,3.3],['Whey protein',400,80,8,6],['Batata cozida',87,1.9,20.1,0.1],['Brócolis',34,2.8,6.6,0.4]
+    ['Arroz branco cozido',128,2.5,28.1,0.2],['Arroz integral cozido',124,2.6,25.8,1.0],['Peito de frango grelhado',159,32.0,0,2.5],['Patinho grelhado',219,35.9,0,7.3],['Tilápia grelhada',154,31.4,0,2.2],['Ovo inteiro cozido',146,13.3,0.6,9.5],['Clara de ovo cozida',52,11.0,0.7,0.2],['Feijão carioca cozido',76,4.8,13.6,0.5],['Lentilha cozida',93,6.3,16.3,0.5],['Tofu',76,8.1,1.9,4.8],['Leite desnatado',35,3.4,5.0,0.1],['Iogurte natural',61,3.5,4.7,3.3],['Cottage',98,11.0,3.4,4.3],['Whey protein (pó)',400,80.0,8.0,6.0],['Aveia em flocos',394,13.9,66.6,8.5],['Pão integral',253,9.4,44.1,3.7],['Batata cozida',52,1.2,11.9,0],['Batata-doce cozida',76,0.6,18.4,0.1],['Macarrão cozido',102,3.2,19.9,0.5],['Banana prata',98,1.3,26.0,0.1],['Maçã com casca',63,0.3,16.6,0],['Abacate',96,1.2,6.0,8.4],['Brócolis cozido',25,2.1,4.4,0.5],['Amendoim torrado',606,22.5,18.7,54.0],['Azeite de oliva',884,0,0,100]
   ].map(([name,kcal,p,c,f])=>({name,kcal,p,c,f}));
   const defaults={food:[], supplements:{'Creatina':false,'Whey protein':false,'Ômega-3':false,'Multivitamínico':false}, workouts:[false,false,false,false], recovery:{sleep:7.5,quality:8,water:2,stress:4}, focus:{screen:3.2,focus:90,reading:20,steps:7000}, tasks:[{text:'Planejar refeições de amanhã',done:false},{text:'Deixar a roupa de treino separada',done:true}], goals:{kcal:2300,p:150,c:260,f:70}};
   let state=JSON.parse(localStorage.getItem('fitpulse-vital')||'null')||defaults;
@@ -80,4 +81,5 @@
   window.addEventListener('fitpulse:auth-changed',async event=>{const user=event.detail;updateAuthButton(user);if(user){const remote=await window.fitpulseFirebase.load();if(remote){state={...defaults,...remote};localStorage.setItem('fitpulse-vital',JSON.stringify(state));renderAll()}else{window.fitpulseFirebase.save(state)}}});
   renderAll(); window.addEventListener('resize',()=>{drawWeek();drawMacro();renderTraining()});
   </script>
+  <script src="./pro-upgrade.js"></script>
 </body></html>
