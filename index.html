@@ -10,7 +10,7 @@
     * { box-sizing:border-box } body { margin:0; background:var(--paper); color:var(--ink); font:14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
     button,input,select { font:inherit } button { cursor:pointer } .shell { max-width:1420px; margin:auto; padding:24px; }
     .top { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:22px; } .brand { display:flex; gap:12px; align-items:center; } .mark { width:42px; height:42px; display:grid; place-items:center; background:var(--forest); border-radius:14px; color:var(--lime); font-size:22px; font-weight:800; } h1 { font-size:20px; margin:0; letter-spacing:-.5px } .sub { color:var(--muted); margin:2px 0 0; font-size:12px }
-    .status { color:var(--forest); background:var(--soft); padding:8px 11px; border-radius:999px; font-size:12px; font-weight:700; }
+    .top-actions { display:flex; gap:8px; align-items:center; }.status { color:var(--forest); background:var(--soft); padding:8px 11px; border-radius:999px; font-size:12px; font-weight:700; }
     .tabs { display:flex; gap:8px; overflow:auto; padding-bottom:6px; margin-bottom:22px; } .tab { border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:10px; padding:9px 13px; white-space:nowrap; } .tab.active { background:var(--ink); color:#fff; border-color:var(--ink); }
     .view { display:none } .view.active { display:block } .grid { display:grid; gap:16px } .dashboard { grid-template-columns:1.15fr .85fr .85fr } .two { grid-template-columns:1.1fr .9fr }.three { grid-template-columns:repeat(3,1fr) }
     .card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; box-shadow:0 3px 16px rgba(20,42,37,.025); } .card h2 { font-size:15px; margin:0 0 4px; letter-spacing:-.2px } .eyebrow { color:var(--muted); text-transform:uppercase; letter-spacing:.08em; font-size:10px; font-weight:750; } .metric { font-size:30px; letter-spacing:-1.3px; font-weight:750; margin:11px 0 2px }.metric small { color:var(--muted); font-size:13px; font-weight:500; letter-spacing:0 }.hint { color:var(--muted); font-size:12px; margin:0 }
@@ -27,7 +27,7 @@
 </head>
 <body>
   <main class="shell">
-    <header class="top"><div class="brand"><div class="mark">↗</div><div><h1>FitPulse Vital</h1><p class="sub" id="todayLabel">Seu sistema diário de evolução</p></div></div><div class="status" id="dayStatus">Dia em andamento</div></header>
+    <header class="top"><div class="brand"><div class="mark">↗</div><div><h1>FitPulse Vital</h1><p class="sub" id="todayLabel">Seu sistema diário de evolução</p></div></div><div class="top-actions"><button class="secondary" id="authButton">Entrar com Google</button><div class="status" id="dayStatus">Dia em andamento</div></div></header>
     <nav class="tabs" aria-label="Navegação principal"><button class="tab active" data-view="home">Hoje</button><button class="tab" data-view="diet">Dieta</button><button class="tab" data-view="training">Treino</button><button class="tab" data-view="recovery">Recuperação</button><button class="tab" data-view="focus">Foco</button></nav>
 
     <section id="home" class="view active">
@@ -74,7 +74,10 @@
   $('#saveRecovery').onclick=()=>{state.recovery={sleep:Number($('#sleepInput').value)||0,quality:Number($('#qualityInput').value)||0,water:Number($('#waterInput').value)||0,stress:Number($('#stressInput').value)||0};save();renderAll()};
   $('#saveFocus').onclick=()=>{state.focus={screen:Number($('#screenInput').value)||0,focus:Number($('#focusInput').value)||0,reading:Number($('#readingInput').value)||0,steps:Number($('#stepsInput').value)||0};save();renderAll()};
   $('#addTask').onclick=()=>{const text=$('#taskInput').value.trim();if(text){state.tasks.push({text,done:false});$('#taskInput').value='';save();renderFocus()}};document.addEventListener('change',e=>{if(e.target.dataset.task!==undefined){state.tasks[e.target.dataset.task].done=e.target.checked;save();renderFocus()}});
-  window.addEventListener('fitpulse:firebase-ready',async()=>{const remote=await window.fitpulseFirebase?.load?.();if(remote){state={...defaults,...remote};localStorage.setItem('fitpulse-vital',JSON.stringify(state));renderAll()}else{window.fitpulseFirebase?.save?.(state)}});
+  const updateAuthButton=user=>{$('#authButton').textContent=user?`Sair (${user.displayName?.split(' ')[0]||'Google'})`:'Entrar com Google'};
+  $('#authButton').onclick=async()=>{if(!window.fitpulseFirebase){alert('Preencha firebase-config.js para ativar a sincronização com Google.');return}const user=window.fitpulseFirebase.getUser();if(user){await window.fitpulseFirebase.signOut()}else{await window.fitpulseFirebase.signIn()}};
+  window.addEventListener('fitpulse:firebase-ready',()=>{updateAuthButton(window.fitpulseFirebase?.getUser?.()||null)});
+  window.addEventListener('fitpulse:auth-changed',async event=>{const user=event.detail;updateAuthButton(user);if(user){const remote=await window.fitpulseFirebase.load();if(remote){state={...defaults,...remote};localStorage.setItem('fitpulse-vital',JSON.stringify(state));renderAll()}else{window.fitpulseFirebase.save(state)}}});
   renderAll(); window.addEventListener('resize',()=>{drawWeek();drawMacro();renderTraining()});
   </script>
 </body></html>
